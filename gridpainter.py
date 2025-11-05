@@ -29,12 +29,23 @@ class GridPainter:
         self.current_value = 1
         self.grid = [[0 for _ in range(cols)] for _ in range(rows)]
 
-        # UI
-        self.canvas = tk.Canvas(root)
-        self.canvas.pack()
+        # --- Canvas inside scrollable frame ---
+        self.frame = tk.Frame(root)
+        self.frame.pack(fill=tk.BOTH, expand=True)
+
+        self.canvas = tk.Canvas(self.frame, bg="white")
+        self.hbar = tk.Scrollbar(self.frame, orient=tk.HORIZONTAL, command=self.canvas.xview)
+        self.vbar = tk.Scrollbar(self.frame, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.canvas.configure(xscrollcommand=self.hbar.set, yscrollcommand=self.vbar.set)
+
+        self.hbar.pack(side=tk.BOTTOM, fill=tk.X)
+        self.vbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
         self.canvas.bind("<Button-1>", self.paint_cell)
         self.canvas.bind("<B1-Motion>", self.paint_cell)
 
+        # --- Controls ---
         self.value_label = tk.Label(root, text=f"Current Value: {self.current_value}")
         self.value_label.pack()
 
@@ -49,7 +60,9 @@ class GridPainter:
     def draw_grid(self):
         self.canvas.delete("all")
         self.rects = [[None for _ in range(self.cols)] for _ in range(self.rows)]
-        self.canvas.config(width=self.cols * self.cell_size, height=self.rows * self.cell_size)
+        width = self.cols * self.cell_size
+        height = self.rows * self.cell_size
+        self.canvas.config(scrollregion=(0, 0, width, height))
         for r in range(self.rows):
             for c in range(self.cols):
                 x1, y1 = c * self.cell_size, r * self.cell_size
@@ -60,8 +73,11 @@ class GridPainter:
                 )
 
     def paint_cell(self, event):
-        c = event.x // self.cell_size
-        r = event.y // self.cell_size
+        # Adjust for scrolling
+        x = self.canvas.canvasx(event.x)
+        y = self.canvas.canvasy(event.y)
+        c = int(x // self.cell_size)
+        r = int(y // self.cell_size)
         if 0 <= r < self.rows and 0 <= c < self.cols:
             self.grid[r][c] = self.current_value
             self.canvas.itemconfig(self.rects[r][c], fill=COLORS[self.current_value])
@@ -73,14 +89,14 @@ class GridPainter:
             self.value_label.config(text=f"Current Value: {self.current_value}")
 
     def resize_grid_dialog(self):
-        new_rows = simpledialog.askinteger("Resize", "Number of rows:", minvalue=1, maxvalue=100)
-        new_cols = simpledialog.askinteger("Resize", "Number of columns:", minvalue=1, maxvalue=100)
+        new_rows = simpledialog.askinteger("Resize", "Number of rows:", minvalue=1, maxvalue=1000)
+        new_cols = simpledialog.askinteger("Resize", "Number of columns:", minvalue=1, maxvalue=1000)
         if new_rows and new_cols:
             self.resize_grid(new_rows, new_cols)
 
     def resize_grid(self, new_rows, new_cols):
         new_grid = [[0 for _ in range(new_cols)] for _ in range(new_rows)]
-        # preserve overlapping cells
+        # Preserve overlapping cells
         for r in range(min(self.rows, new_rows)):
             for c in range(min(self.cols, new_cols)):
                 new_grid[r][c] = self.grid[r][c]
@@ -101,6 +117,7 @@ class GridPainter:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("Dynamic Grid Painter")
+    root.title("Dynamic Grid Painter with Scrollbars")
+    root.geometry("800x600")
     app = GridPainter(root)
     root.mainloop()
