@@ -2,11 +2,11 @@
 A basic Python tool which makes it easier to make tilemaps!  
 Just run the python file gridpainter.py 
 
-**Features**:
-* You can paint tiles to change their colors,
-* Change the tile id you are painting with,
-* Resize grid to a different size, 
-* Click copy to clipboard to get it formatted as a comma seperated list in brackets
+**How To Use**:
+* Click tiles to change their colors,
+* Press "Change Value" to change the tile id you are painting with,
+* Press "Resize Grid" to change number of rows and columns, 
+* Click export to clipboard to get it conveniently formatted as a comma seperated list in brackets as shown below that is perfect for raylib! 
   
 ![screenshot of the app](examplescreenshot.png)
 In this screenshot example, the output that was copied to clipboard was: 
